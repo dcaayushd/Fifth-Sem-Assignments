@@ -1,90 +1,176 @@
-#include <iostream>
-#include <vector>
-#include <string>
+// C++ PROGRAM TO Encrypt the message 'I study Cryptography' with key 'guys' using playfair cipher.
 
-#define SIZE 5
-
+#include<iostream>
 using namespace std;
+#define SIZE 30
 
-vector<vector<char> > mat(SIZE, vector<char>(SIZE));
-
-void createMatrix(string key) {
-    int i, j, k, flag = 0;
-    vector<int> dicty(26, 0);
-    char c;
-
-    k = 0;
-    c = 'A';
-    for (i = 0; i < SIZE; i++) {
-        for (j = 0; j < SIZE; j++) {
-            if (k <= key.length()) {
-                if (key[k] == 'j')
-                    key[k] = 'i';
-                if (dicty[key[k] - 97] == 0) {
-                    mat[i][j] = key[k];
-                    dicty[key[k] - 97] = 1;
-                } else
-                    j--;
-            } else {
-                if (dicty[c - 97] == 0) {
-                    mat[i][j] = c;
-                    dicty[c - 97] = 1;
-                } else
-                    j--;
-                c++;
-            }
-            k++;
-        }
-    }
+// Function to convert the string to lowercase
+void toLowerCase(char plain[], int ps)
+{
+	int i;
+	for (i = 0; i < ps; i++) {
+		if (plain[i] > 64 && plain[i] < 91)
+			plain[i] += 32;
+	}
 }
 
-void Playfair(char ch1, char ch2, string key) {
-    int i, j, w, x, y, z;
-    createMatrix(key);
-
-    for (i = 0; i < SIZE; i++) {
-        for (j = 0; j < SIZE; j++) {
-            if (ch1 == mat[i][j]) {
-                w = i;
-                x = j;
-            } else if (ch2 == mat[i][j]) {
-                y = i;
-                z = j;
-            }
-        }
-    }
-
-    cout << mat[w][z] << mat[y][x];
+// Function to remove all spaces in a string
+int removeSpaces(char* plain, int ps)
+{
+	int i, count = 0;
+	for (i = 0; i < ps; i++)
+		if (plain[i] != ' ')
+			plain[count++] = plain[i];
+	plain[count] = '\0';
+	return count;
 }
 
-void cipher(string str, string key) {
-    int i, j;
-    string msg;
+// Function to generate the 5x5 key square
+void generateKeyTable(char key[], int ks, char keyT[5][5])
+{
+	int i, j, k, flag = 0;
 
-    j = 0;
-    for (i = 0; i < str.length(); i++) {
-        if (str[i] != ' ') {
-            msg += str[i];
-            j++;
-        }
-    }
+	// a 26 character hashmap
+	// to store count of the alphabet
+	int dicty[26] = { 0 };
+	for (i = 0; i < ks; i++) {
+		if (key[i] != 'j')
+			dicty[key[i] - 97] = 2;
+	}
 
-    for (i = 0; i < msg.length(); i += 2) {
-        if (msg[i + 1] == '\0')
-            Playfair(msg[i], 'x', key);
-        else {
-            Playfair(msg[i], msg[i + 1], key);
-        }
-    }
+	dicty['j' - 97] = 1;
+
+	i = 0;
+	j = 0;
+
+	for (k = 0; k < ks; k++) {
+		if (dicty[key[k] - 97] == 2) {
+			dicty[key[k] - 97] -= 1;
+			keyT[i][j] = key[k];
+			j++;
+			if (j == 5) {
+				i++;
+				j = 0;
+			}
+		}
+	}
+
+	for (k = 0; k < 26; k++) {
+		if (dicty[k] == 0) {
+			keyT[i][j] = (char)(k + 97);
+			j++;
+			if (j == 5) {
+				i++;
+				j = 0;
+			}
+		}
+	}
 }
 
-int main() {
-    string key = "guys";
-    string str = "IstudyCryptography";
+// Function to search for the characters of a digraph
+// in the key square and return their position
+void search(char keyT[5][5], char a, char b, int arr[])
+{
+	int i, j;
 
-    cout << "Encryption: ";
-    cipher(str, key);
-    cout << "\n";
+	if (a == 'j')
+		a = 'i';
+	else if (b == 'j')
+		b = 'i';
 
-    return 0;
+	for (i = 0; i < 5; i++) {
+
+		for (j = 0; j < 5; j++) {
+
+			if (keyT[i][j] == a) {
+				arr[0] = i;
+				arr[1] = j;
+			}
+			else if (keyT[i][j] == b) {
+				arr[2] = i;
+				arr[3] = j;
+			}
+		}
+	}
 }
+
+// Function to find the modulus with 5
+int mod5(int a) { return (a % 5); }
+
+// Function to make the plain text length to be even
+int prepare(char str[], int ptrs)
+{
+	if (ptrs % 2 != 0) {
+		str[ptrs++] = 'z';
+		str[ptrs] = '\0';
+	}
+	return ptrs;
+}
+
+// Function for performing the encryption
+void encrypt(char str[], char keyT[5][5], int ps)
+{
+	int i, a[4];
+
+	for (i = 0; i < ps; i += 2) {
+
+		search(keyT, str[i], str[i + 1], a);
+
+		if (a[0] == a[2]) {
+			str[i] = keyT[a[0]][mod5(a[1] + 1)];
+			str[i + 1] = keyT[a[0]][mod5(a[3] + 1)];
+		}
+		else if (a[1] == a[3]) {
+			str[i] = keyT[mod5(a[0] + 1)][a[1]];
+			str[i + 1] = keyT[mod5(a[2] + 1)][a[1]];
+		}
+		else {
+			str[i] = keyT[a[0]][a[3]];
+			str[i + 1] = keyT[a[2]][a[1]];
+		}
+	}
+}
+
+// Function to encrypt using Playfair Cipher
+void encryptByPlayfairCipher(char str[], char key[])
+{
+	char ps, ks, keyT[5][5];
+
+	// Key
+	ks = strlen(key);
+	ks = removeSpaces(key, ks);
+	toLowerCase(key, ks);
+
+	// Plaintext
+	ps = strlen(str);
+	toLowerCase(str, ps);
+	ps = removeSpaces(str, ps);
+
+	ps = prepare(str, ps);
+
+	generateKeyTable(key, ks, keyT);
+
+	encrypt(str, keyT, ps);
+}
+
+// Driver code
+int main()
+{
+	char str[SIZE], key[SIZE];
+
+	// Key to be encrypted
+	strcpy(key, "GUYS");
+	cout << "Key text: " << key << "\n";
+
+	// Plaintext to be encrypted
+	strcpy(str, "I study Cryptography");
+	cout << "Plain text: " << str << "\n";
+
+	// encrypt using Playfair Cipher
+	encryptByPlayfairCipher(str, key);
+
+	cout << "Cipher text: " << str << "\n";
+
+	return 0;
+}
+
