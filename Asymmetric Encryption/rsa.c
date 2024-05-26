@@ -3,7 +3,7 @@
 #include <time.h>
 #include <math.h>
 
-// Function to calculate gcd
+
 int gcd(int a, int b) {
     while (b != 0) {
         int t = b;
