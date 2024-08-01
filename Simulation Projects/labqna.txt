@@ -1,0 +1,12 @@
+1.	Write program to implement Monte Carlo’s simulation 
+2.	Write program to implement queuing system and calculate different queue parameters.
+3.	Write program to implement markov chain
+4.	Write program generate random number using linear congruential method
+5.	Write program generate random number using  multiplicative congruential method.
+6.	Write program generate random number using mid square  method.
+7.	Write program to implement KS-test
+8.	Write program to implement autocorrelation test
+9.	Write program to implement Chi-Square test
+10.	Write program to implement gap test 
+11.	GPSS program (all models present in note and done in class)
+(note program should be handwritten and output can be printed.Lab report should not match with each other.)
